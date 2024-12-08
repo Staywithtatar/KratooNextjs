@@ -41,7 +41,7 @@ function WelcomePage() {
         if(userEmail) {
             getPosts();
         }
-    }, [userEmail]);
+    }, [userEmail, getPosts]);
 
   return (
     <Container>
@@ -74,10 +74,14 @@ function WelcomePage() {
                            <h4 className='text-2xl font-semibold text-blue-900 mb-4'>{val.title}</h4>
                            {val.img && /^https?:\/\/.+/.test(val.img) ? (
                                <div className='relative w-full h-64 mb-6 rounded-lg overflow-hidden'>
-                                   <img 
+                                   <Image 
                                        className='object-cover w-full h-full hover:scale-105 transition-transform duration-300' 
                                        src={val.img}
                                        alt={val.title}
+                                       width={300}
+                                        height={200}
+                                        layout="responsive"
+                                        objectFit="cover"
                                    />
                                </div>
                            ) : (

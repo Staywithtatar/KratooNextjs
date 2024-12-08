@@ -9,7 +9,7 @@ function AllPosts() {
     useEffect(() => {
         const fetchPosts = async () => {
             try {
-                const res = await fetch('/api/totalposts')
+                const res = await fetch(`${process.env.NEXT_PUBLIC_URL}/api/totalposts`)
                 const data = await res.json()
                 setPosts(data.totalPosts)
             } catch (error) {
@@ -39,11 +39,15 @@ function AllPosts() {
                             <h3 className="text-xl font-semibold text-blue-900 mb-3">{post.title}</h3>
                             {post.img && (
                                 <div className="mb-4 relative h-64 rounded-lg overflow-hidden">
-                                    <img 
-                                        src={post.img}
-                                        alt={post.title}
-                                        className="object-cover w-full h-full"
-                                    />
+                                   <Image 
+    src={post.img}
+    alt={post.title}
+    width={300}
+    height={200}
+    className='my-3 rounded-md'
+    layout="responsive"
+    objectFit="cover"
+/>
                                 </div>
                             )}
                             <p className="text-gray-600 leading-relaxed mb-4">{post.content}</p>

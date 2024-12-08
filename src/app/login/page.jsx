@@ -92,12 +92,12 @@ function LoginPage() {
                            </button>
 
                            <div className='text-center mt-6'>
-                               <p className='text-blue-600'>
-                                   Don't have an account? {' '}
-                                   <Link href="/register" className='text-blue-800 font-semibold hover:underline'>
-                                       Register here
-                                   </Link>
-                               </p>
+                           <p className='text-blue-600'>
+    Don&apos;t have an account? {' '}
+    <Link href="/register" className='text-blue-800 font-semibold hover:underline'>
+        Register here
+    </Link>
+</p>
                            </div>
                        </form>
                    </div>

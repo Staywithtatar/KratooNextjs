@@ -86,44 +86,74 @@ function EditUserForm({ userId }) {
 
     return (
         <Container>
-            <AdminNav session={session} />
-            <div className='flex-grow'>
-                <div className='container mx-auto bg-white shadow-lg my-10 p-8 rounded-lg'>
-                    <Link href="/admin/users" className='bg-red-500 hover:bg-red-600 inline-block text-white py-2 px-4 rounded my-2 transition duration-200'>
-                        Go back
-                    </Link>
-                    <hr className='my-6 border-gray-300' />
-                    <h3 className='text-2xl font-bold mb-4 text-red-500'>Edit User</h3>
-                    <form onSubmit={handleSubmit}>
-                        <input 
-                            type="text"
-                            value={formData.newName}
-                            onChange={(e) => setFormData({...formData, newName: e.target.value})}
-                            placeholder="Username"
-                            className='w-full block bg-gray-100 border border-gray-300 py-2 px-4 rounded-md text-lg my-4'
-                        />
-                        <input 
-                            type="email"
-                            value={formData.newEmail}
-                            onChange={(e) => setFormData({...formData, newEmail: e.target.value})}
-                            placeholder="Email"
-                            className='w-full block bg-gray-100 border border-gray-300 py-2 px-4 rounded-md text-lg my-4'
-                        />
-                        <input 
-                            type="password"
-                            value={formData.newPassword}
-                            onChange={(e) => setFormData({...formData, newPassword: e.target.value})}
-                            placeholder="New Password"
-                            className='w-full block bg-gray-100 border border-gray-300 py-2 px-4 rounded-md text-lg my-4'
-                        />
-                        <button type='submit' className='bg-red-500 hover:bg-red-600 text-white py-2 px-6 rounded-md text-lg my-4 transition duration-200'>
-                            Update User
-                        </button>
-                    </form>
+        <AdminNav session={session} />
+        <div className='flex-grow bg-gradient-to-b from-white to-red-50'>
+            <div className='max-w-3xl mx-auto'>
+                <div className='bg-white shadow-lg my-10 rounded-2xl overflow-hidden'>
+                    <div className='bg-red-600 px-8 py-4'>
+                        <Link 
+                            href="/admin/users" 
+                            className='inline-flex items-center text-white hover:text-red-100 transition-colors duration-200'
+                        >
+                            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+                            </svg>
+                            Back to Users
+                        </Link>
+                    </div>
+                    
+                    <div className='p-8'>
+                        <h3 className='text-2xl font-bold text-red-600 mb-6'>Edit User</h3>
+                        <form onSubmit={handleSubmit} className='space-y-6'>
+                            <div>
+                                <label className="text-sm font-medium text-gray-700">Username</label>
+                                <input 
+                                    type="text"
+                                    value={formData.newName}
+                                    onChange={(e) => setFormData({...formData, newName: e.target.value})}
+                                    className='w-full mt-1 px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 transition duration-200'
+                                    placeholder="Enter username"
+                                />
+                            </div>
+                            
+                            <div>
+                                <label className="text-sm font-medium text-gray-700">Email</label>
+                                <input 
+                                    type="email"
+                                    value={formData.newEmail}
+                                    onChange={(e) => setFormData({...formData, newEmail: e.target.value})}
+                                    className='w-full mt-1 px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 transition duration-200'
+                                    placeholder="Enter email"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="text-sm font-medium text-gray-700">New Password</label>
+                                <input 
+                                    type="password"
+                                    value={formData.newPassword}
+                                    onChange={(e) => setFormData({...formData, newPassword: e.target.value})}
+                                    className='w-full mt-1 px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 transition duration-200'
+                                    placeholder="Enter new password"
+                                />
+                            </div>
+
+                            <button 
+                                type='submit' 
+                                className='w-full bg-red-600 text-white py-3 px-6 rounded-lg hover:bg-red-700 transition-colors duration-200 flex items-center justify-center'
+                            >
+                                Update User
+                                <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"/>
+                                </svg>
+                            </button>
+                        </form>
+                    </div>
                 </div>
             </div>
-            <Footer />
-        </Container>
+        </div>
+        <Footer />
+    </Container>
     );
 }
 
