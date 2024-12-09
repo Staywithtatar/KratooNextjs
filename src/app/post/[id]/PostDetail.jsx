@@ -14,7 +14,7 @@ export default function PostDetail({ postId }) {
     useEffect(() => {
         const fetchPost = async () => {
             try {
-                const res = await fetch(`/api/posts/${postId}`)
+                const res = await fetch(`${process.env.NEXT_PUBLIC_URL}/api/posts/${postId}`)
                 const data = await res.json()
                 setPost(data.post)
             } catch (error) {

@@ -25,7 +25,7 @@ function WelcomePage() {
 
     const fetchComments = async (postId) => {
         try {
-            const res = await fetch(`/api/comments?postId=${postId}`);
+            const res = await fetch(`${process.env.NEXT_PUBLIC_URL}/api/comments?postId=${postId}`);
             const data = await res.json();
             setPostComments(prev => ({
                 ...prev,

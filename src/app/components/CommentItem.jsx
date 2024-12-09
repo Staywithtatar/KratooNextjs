@@ -13,7 +13,7 @@ function CommentItem({ comment, onReply, nesting = 0 }) {
         if (!replyContent.trim()) return;
 
         try {
-            const res = await fetch('/api/comments', {
+            const res = await fetch(`${process.env.NEXT_PUBLIC_URL}/api/comments`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'

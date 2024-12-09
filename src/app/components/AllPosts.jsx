@@ -10,7 +10,7 @@ function AllPosts() {
 
     const fetchComments = async (postId) => {
         try {
-            const res = await fetch(`/api/comments?postId=${postId}`);
+            const res = await fetch(`${process.env.NEXT_PUBLIC_URL}/api/comments?postId=${postId}`);
             const data = await res.json();
             setPostComments(prev => ({
                 ...prev,
@@ -37,7 +37,7 @@ function AllPosts() {
     useEffect(() => {
         const fetchPostsAndComments = async () => {
             try {
-                const res = await fetch(`/api/totalposts`);
+                const res = await fetch(`${process.env.NEXT_PUBLIC_URL}/api/totalposts`);
                 const data = await res.json();
                 setPosts(data.totalPosts);
                 

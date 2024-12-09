@@ -9,7 +9,7 @@ export default function Comments({ postId }) {
     const { data: session } = useSession()
 
     const fetchComments = async () => {
-        const res = await fetch(`/api/comments?postId=${postId}`)
+        const res = await fetch(`${process.env.NEXT_PUBLIC_URL}/api/comments?postId=${postId}`)
         const data = await res.json()
         setComments(data.comments)
     }
@@ -23,7 +23,7 @@ export default function Comments({ postId }) {
         if (!newComment.trim()) return
 
         try {
-            const res = await fetch('/api/comments', {
+            const res = await fetch(`${process.env.NEXT_PUBLIC_URL}/api/comments`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -91,7 +91,7 @@ function CommentItem({ comment, onReply }) {
         if (!replyContent.trim()) return
 
         try {
-            const res = await fetch('/api/comments', {
+            const res = await fetch(`${process.env.NEXT_PUBLIC_URL}/api/comments`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
