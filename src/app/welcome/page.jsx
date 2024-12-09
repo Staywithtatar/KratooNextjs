@@ -19,8 +19,23 @@ function WelcomePage() {
     if (session?.user?.role === "admin") redirect("/admin");
 
     const [postData, setPostData] = useState([]);
+    const [postComments, setPostComments] = useState({});
 
     const userEmail = session?.user?.email;
+
+    const fetchComments = async (postId) => {
+        try {
+            const res = await fetch(`/api/comments?postId=${postId}`);
+            const data = await res.json();
+            setPostComments(prev => ({
+                ...prev,
+                [postId]: data.comments
+            }));
+        } catch (error) {
+            console.log("Error fetching comments:", error);
+        }
+    };
+    
 
     const handlePostDelete = (deletedId) => {
         setPostData(posts => posts.filter(post => post._id !== deletedId));
@@ -42,6 +57,12 @@ function WelcomePage() {
             getPosts();
         }
     }, [userEmail, getPosts]);
+
+    useEffect(() => {
+        // Fetch comments for each post
+        postData.forEach(post => fetchComments(post._id));
+    }, [postData]);
+    
 
   return (
     <Container>
@@ -73,55 +94,91 @@ function WelcomePage() {
                     </div>
 
                   {/* Posts Grid Section */}
-<div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'>
-   {postData && postData.length > 0 ? (
-       postData.map(val => (
-           <div key={val._id} 
-               className='bg-white rounded-lg shadow-md hover:shadow-lg transition-all duration-200 overflow-hidden h-[500px] flex flex-col border border-blue-50'
-           >
-               {/* Image Container */}
-               {val.img && /^https?:\/\/.+/.test(val.img) ? (
-                   <div className='h-48 relative'>
-                       <Image 
-                           src={val.img}
-                           alt={val.title}
-                           fill
-                           className='object-cover hover:scale-105 transition-transform duration-300'
-                       />
-                   </div>
-               ) : null}
-               
-               {/* Content Container */}
-               <div className='p-5 flex flex-col flex-grow'>
-                   <h4 className='text-xl font-semibold text-blue-900 mb-2 line-clamp-2 hover:text-blue-700 transition-colors'>
-                       {val.title}
-                   </h4>
-                   <p className='text-gray-600 text-sm leading-relaxed mb-4 line-clamp-4'>
-                       {val.content}
-                   </p>
-                   
-                   {/* Actions Section */}
-                   <div className='mt-auto pt-4 border-t border-blue-50'>
-                       <div className='flex items-center justify-between text-sm mb-3'>
-                           <span className='text-blue-500 flex items-center'>
-                               <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                               </svg>
-                               {new Date().toLocaleDateString()}
-                           </span>
-                       </div>
-                       <div className='flex gap-2'>
-                           <Link 
-                               href={`/edit/${val._id}`}
-                               className='flex-1 text-center py-2 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded transition-colors duration-200 text-sm font-medium'
-                           >
-                               <span>Edit</span>
-                           </Link>
-                           <DeleteBtn id={val._id} onDelete={handlePostDelete} />
-                       </div>
-                   </div>
-               </div>
-           </div>
+                  <div className='grid grid-cols-1 lg:grid-cols-2 gap-8'>
+    {postData && postData.length > 0 ? (
+        postData.map(val => (
+            <div key={val._id} 
+                className='bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden flex flex-col border border-blue-100'
+            >
+                {/* Image Container with Gradient Overlay */}
+                {val.img && /^https?:\/\/.+/.test(val.img) ? (
+                    <div className='relative h-64'>
+                        <Image 
+                            src={val.img}
+                            alt={val.title}
+                            fill
+                            className='object-cover hover:scale-105 transition-transform duration-500'
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent"></div>
+                    </div>
+                ) : null}
+                
+                {/* Content Container */}
+                <div className='p-6 flex flex-col flex-grow'>
+                    <h4 className='text-2xl font-bold text-gray-800 mb-3 hover:text-blue-600 transition-colors'>
+                        {val.title}
+                    </h4>
+                    <p className='text-gray-600 leading-relaxed mb-4'>
+                        {val.content}
+                    </p>
+                    
+                    {/* Comments Section */}
+                    <div className='mt-4 mb-6'>
+                        <div className='flex items-center gap-2 mb-3'>
+                            <svg className="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/>
+                            </svg>
+                            <span className='text-sm text-blue-600 font-medium'>
+                                {postComments[val._id]?.length || 0} Comments
+                            </span>
+                        </div>
+
+                        {/* Comments Preview */}
+                        {postComments[val._id]?.slice(0, 2).map(comment => (
+                            <div key={comment._id} className='bg-blue-50 rounded-lg p-3 mb-2'>
+                                <div className='flex items-center gap-3'>
+                                    <div className='w-8 h-8 bg-blue-200 rounded-full flex items-center justify-center'>
+                                        <span className='text-sm font-bold text-blue-700'>
+                                            {comment.author?.name?.[0] || 'A'}
+                                        </span>
+                                    </div>
+                                    <div className='flex-1'>
+                                        <p className='text-sm text-gray-600'>{comment.content}</p>
+                                        <span className='text-xs text-blue-500'>
+                                            {new Date(comment.createdAt).toLocaleDateString()}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+
+                        {postComments[val._id]?.length > 2 && (
+                            <Link 
+                                href={`/post/${val._id}`}
+                                className='text-sm text-blue-600 hover:text-blue-700 font-medium inline-flex items-center gap-1'
+                            >
+                                View all comments
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"/>
+                                </svg>
+                            </Link>
+                        )}
+                    </div>
+
+                    {/* Actions Section */}
+                    <div className='mt-auto pt-4 border-t border-gray-100'>
+                        <div className='flex gap-3'>
+                            <Link 
+                                href={`/edit/${val._id}`}
+                                className='flex-1 py-2 bg-blue-600 text-white text-center rounded-lg hover:bg-blue-700 transition-colors duration-200'
+                            >
+                                Edit Post
+                            </Link>
+                            <DeleteBtn id={val._id} onDelete={handlePostDelete} />
+                        </div>
+                    </div>
+                </div>
+            </div>
        ))
    ) : (
        <div className='col-span-full bg-blue-50 border border-blue-100 rounded-lg p-8 text-center'>

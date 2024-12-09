@@ -6,32 +6,36 @@ import { signOut } from 'next-auth/react'
 
 function AdminNav({ session }) {
     return (
-      <nav className='bg-red-500 shadow-xl'>
-          <div className='container mx-auto'>
-              <div className='flex justify-between items-center p-4'>
-                  <div>
-                      <Link href="/admin">
-                          <Image src={Logo} width={50} height={50} alt="NextJS Logo" />  
-                      </Link>
-                  </div>
-                  <ul className='flex items-center'>
-                      {!session ? (
-                          <>
-                              <li className='mx-3 text-white hover:underline'><Link href="/login">Login</Link></li>
-                              <li className='mx-3 text-white hover:underline'><Link href="/register">Register</Link></li>
-                          </>
-                      ) : (
-                          <li>
-                              <a  onClick={() => signOut()}
-                                  className='bg-white text-red-500 font-bold py-2 px-4 rounded-md text-lg hover:bg-red-100 transition duration-200'>
-                                  Logout
-                              </a>
-                          </li>
-                      )}
-                  </ul>
-              </div>
-          </div>
-      </nav>
+        <nav className='bg-red-500 shadow-lg'>
+        <div className='container mx-auto'>
+            <div className='flex justify-between items-center px-6 py-4'>
+                <Link href="/admin" className="hover:opacity-90 transition-opacity">
+                    <Image src={Logo} width={50} height={50} alt="NextJS Logo" className="drop-shadow-md" />  
+                </Link>
+                <ul className='flex items-center space-x-6'>
+                    {!session ? (
+                        <>
+                            <li>
+                                <Link href="/login" className='text-white hover:text-red-100 transition-colors'>Login</Link>
+                            </li>
+                            <li>
+                                <Link href="/register" className='text-white hover:text-red-100 transition-colors'>Register</Link>
+                            </li>
+                        </>
+                    ) : (
+                        <li>
+                            <button 
+                                onClick={() => signOut()}
+                                className='bg-white text-red-500 font-semibold py-2 px-6 rounded-lg hover:bg-red-50 transform hover:-translate-y-0.5 transition-all duration-200 shadow-md hover:shadow-lg'
+                            >
+                                Logout
+                            </button>
+                        </li>
+                    )}
+                </ul>
+            </div>
+        </div>
+    </nav>
     )
   }
   
