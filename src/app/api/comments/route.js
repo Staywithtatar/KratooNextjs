@@ -7,13 +7,7 @@ import { NextResponse } from "next/server";
 export async function GET(req) {
     const postId = req.nextUrl.searchParams.get("postId");
     await connectMongoDB();
-    const comments = await Comment.find({ postId })
-        .populate('author', 'name email')
-        .populate({
-            path: 'replies',
-            populate: { path: 'author', select: 'name email' }
-        })
-        .sort({ createdAt: -1 });
+    const comments = await Comment.find({ postId }).populate('author', 'name email');
     return NextResponse.json({ comments });
 }
 
