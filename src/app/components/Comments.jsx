@@ -1,22 +1,35 @@
 // components/Comments.jsx
 "use client"
-import { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { useSession } from 'next-auth/react'
 
 export default function Comments({ postId }) {
     const [comments, setComments] = useState([])
     const [newComment, setNewComment] = useState('')
+    const [isLoading, setIsLoading] = useState(true)
+    const [error, setError] = useState(null)
     const { data: session } = useSession()
 
-    const fetchComments = async () => {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_URL}/api/comments?postId=${postId}`)
-        const data = await res.json()
-        setComments(data.comments)
-    }
+    const fetchComments = useCallback(async () => {
+        try {
+            setIsLoading(true)
+            const response = await fetch(`${process.env.NEXT_PUBLIC_URL}/api/comments?postId=${postId}`)
+            if (!response.ok) {
+                throw new Error('Failed to fetch comments')
+            }
+            const data = await response.json()
+            setComments(data.comments)
+            setError(null)
+        } catch (err) {
+            setError(err.message)
+        } finally {
+            setIsLoading(false)
+        }
+    }, [postId])
 
     useEffect(() => {
         fetchComments()
-    }, [postId])
+    }, [fetchComments])
 
     const handleSubmit = async (e) => {
         e.preventDefault()

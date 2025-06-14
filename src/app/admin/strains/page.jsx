@@ -1,0 +1,378 @@
+"use client"
+
+import React, { useState, useEffect } from 'react'
+import Container from '../../components/Container'
+import { useRouter } from 'next/navigation'
+
+function StrainsPage() {
+    const [strains, setStrains] = useState([]);
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState("");
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [editingStrain, setEditingStrain] = useState(null);
+    const [formData, setFormData] = useState({
+        name: "",
+        type: "Indica", // Changed default to match enum values
+        thcContent: "", // Changed from thc
+        cbdContent: "", // Changed from cbd
+        description: "",
+        price: "",
+        stock: "",
+        image: "/images/default-strain.jpg" // Added default image
+    });
+
+    const router = useRouter();
+
+    useEffect(() => {
+        fetchStrains();
+    }, []);
+
+    const fetchStrains = async () => {
+        try {
+            const res = await fetch(`${process.env.NEXT_PUBLIC_URL}/api/strains`);
+            const data = await res.json();
+            if (res.ok) {
+                setStrains(data);
+            } else {
+                setError("ไม่สามารถโหลดข้อมูลสายพันธุ์ได้");
+            }
+        } catch (error) {
+            setError("เกิดข้อผิดพลาดในการโหลดข้อมูล");
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        try {
+            const url = editingStrain 
+                ? `${process.env.NEXT_PUBLIC_URL}/api/strains/${editingStrain._id}`
+                : `${process.env.NEXT_PUBLIC_URL}/api/strains`;
+            
+            const method = editingStrain ? "PUT" : "POST";
+            
+            // Convert numeric fields to numbers
+            const submitData = {
+                ...formData,
+                thcContent: parseFloat(formData.thcContent),
+                cbdContent: parseFloat(formData.cbdContent),
+                price: parseFloat(formData.price),
+                stock: parseFloat(formData.stock)
+            };
+            
+            const res = await fetch(url, {
+                method,
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(submitData)
+            });
+
+            if (res.ok) {
+                setIsModalOpen(false);
+                setEditingStrain(null);
+                setFormData({
+                    name: "",
+                    type: "Indica",
+                    thcContent: "",
+                    cbdContent: "",
+                    description: "",
+                    price: "",
+                    stock: "",
+                    image: "/images/default-strain.jpg"
+                });
+                fetchStrains();
+            } else {
+                const data = await res.json();
+                setError(data.message || "ไม่สามารถบันทึกข้อมูลได้");
+            }
+        } catch (error) {
+            setError("เกิดข้อผิดพลาดในการบันทึกข้อมูล");
+        }
+    };
+
+    const handleDelete = async (id) => {
+        if (!confirm("คุณแน่ใจหรือไม่ที่จะลบสายพันธุ์นี้?")) return;
+
+        try {
+            const res = await fetch(`${process.env.NEXT_PUBLIC_URL}/api/strains/${id}`, {
+                method: "DELETE"
+            });
+
+            if (res.ok) {
+                fetchStrains();
+            } else {
+                setError("ไม่สามารถลบข้อมูลได้");
+            }
+        } catch (error) {
+            setError("เกิดข้อผิดพลาดในการลบข้อมูล");
+        }
+    };
+
+    const handleEdit = (strain) => {
+        setEditingStrain(strain);
+        setFormData({
+            name: strain.name,
+            type: strain.type,
+            thcContent: strain.thcContent,
+            cbdContent: strain.cbdContent,
+            description: strain.description,
+            price: strain.price,
+            stock: strain.stock,
+            image: strain.image || "/images/default-strain.jpg"
+        });
+        setIsModalOpen(true);
+    };
+
+    return (
+        <Container>
+            <div className="min-h-screen bg-gray-50 py-8">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div className="sm:flex sm:items-center">
+                        <div className="sm:flex-auto">
+                            <h1 className="text-2xl font-semibold text-gray-900">จัดการสายพันธุ์กัญชา</h1>
+                            <p className="mt-2 text-sm text-gray-700">
+                                รายการสายพันธุ์กัญชาทั้งหมดในระบบ
+                            </p>
+                        </div>
+                        <div className="mt-4 sm:mt-0 sm:ml-16 sm:flex-none">
+                            <button
+                                onClick={() => {
+                                    setEditingStrain(null);
+                                    setFormData({
+                                        name: "",
+                                        type: "Indica",
+                                        thcContent: "",
+                                        cbdContent: "",
+                                        description: "",
+                                        price: "",
+                                        stock: "",
+                                        image: "/images/default-strain.jpg"
+                                    });
+                                    setIsModalOpen(true);
+                                }}
+                                className="inline-flex items-center justify-center rounded-md border border-transparent bg-green-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 sm:w-auto"
+                            >
+                                เพิ่มสายพันธุ์ใหม่
+                            </button>
+                        </div>
+                    </div>
+
+                    {error && (
+                        <div className="mt-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded relative">
+                            {error}
+                        </div>
+                    )}
+
+                    <div className="mt-8 flex flex-col">
+                        <div className="-my-2 -mx-4 overflow-x-auto sm:-mx-6 lg:-mx-8">
+                            <div className="inline-block min-w-full py-2 align-middle md:px-6 lg:px-8">
+                                <div className="overflow-hidden shadow ring-1 ring-black ring-opacity-5 md:rounded-lg">
+                                    {isLoading ? (
+                                        <div className="flex justify-center items-center h-32">
+                                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600"></div>
+                                        </div>
+                                    ) : (
+                                        <table className="min-w-full divide-y divide-gray-300">
+                                            <thead className="bg-gray-50">
+                                                <tr>
+                                                    <th scope="col" className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6">
+                                                        ชื่อสายพันธุ์
+                                                    </th>
+                                                    <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+                                                        ประเภท
+                                                    </th>
+                                                    <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+                                                        THC
+                                                    </th>
+                                                    <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+                                                        CBD
+                                                    </th>
+                                                    <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+                                                        ราคา
+                                                    </th>
+                                                    <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+                                                        สต็อก
+                                                    </th>
+                                                    <th scope="col" className="relative py-3.5 pl-3 pr-4 sm:pr-6">
+                                                        <span className="sr-only">จัดการ</span>
+                                                    </th>
+                                                </tr>
+                                            </thead>
+                                            <tbody className="divide-y divide-gray-200 bg-white">
+                                                {strains.map((strain) => (
+                                                    <tr key={strain._id}>
+                                                        <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6">
+                                                            {strain.name}
+                                                        </td>
+                                                        <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                                                            {strain.type === 'Indica' ? 'อินดิกา' : 
+                                                             strain.type === 'Sativa' ? 'ซาติวา' : 'ไฮบริด'}
+                                                        </td>
+                                                        <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                                                            {strain.thcContent}%
+                                                        </td>
+                                                        <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                                                            {strain.cbdContent}%
+                                                        </td>
+                                                        <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                                                            {strain.price.toLocaleString()} บาท
+                                                        </td>
+                                                        <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                                                            {strain.stock} กรัม
+                                                        </td>
+                                                        <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
+                                                            <button
+                                                                onClick={() => handleEdit(strain)}
+                                                                className="text-green-600 hover:text-green-900 mr-4"
+                                                            >
+                                                                แก้ไข
+                                                            </button>
+                                                            <button
+                                                                onClick={() => handleDelete(strain._id)}
+                                                                className="text-red-600 hover:text-red-900"
+                                                            >
+                                                                ลบ
+                                                            </button>
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* Modal */}
+            {isModalOpen && (
+                <div className="fixed z-10 inset-0 overflow-y-auto">
+                    <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+                        <div className="fixed inset-0 transition-opacity" aria-hidden="true">
+                            <div className="absolute inset-0 bg-gray-500 opacity-75"></div>
+                        </div>
+
+                        <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+                            <form onSubmit={handleSubmit} className="p-6">
+                                <div className="mb-4">
+                                    <h3 className="text-lg font-medium text-gray-900">
+                                        {editingStrain ? 'แก้ไขสายพันธุ์' : 'เพิ่มสายพันธุ์ใหม่'}
+                                    </h3>
+                                </div>
+
+                                <div className="space-y-4">
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700">ชื่อสายพันธุ์</label>
+                                        <input
+                                            type="text"
+                                            required
+                                            value={formData.name}
+                                            onChange={(e) => setFormData({...formData, name: e.target.value})}
+                                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 sm:text-sm"
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700">ประเภท</label>
+                                        <select
+                                            value={formData.type}
+                                            onChange={(e) => setFormData({...formData, type: e.target.value})}
+                                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 sm:text-sm"
+                                        >
+                                            <option value="Indica">อินดิกา</option>
+                                            <option value="Sativa">ซาติวา</option>
+                                            <option value="Hybrid">ไฮบริด</option>
+                                        </select>
+                                    </div>
+
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700">THC (%)</label>
+                                            <input
+                                                type="number"
+                                                step="0.1"
+                                                required
+                                                value={formData.thcContent}
+                                                onChange={(e) => setFormData({...formData, thcContent: e.target.value})}
+                                                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 sm:text-sm"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700">CBD (%)</label>
+                                            <input
+                                                type="number"
+                                                step="0.1"
+                                                required
+                                                value={formData.cbdContent}
+                                                onChange={(e) => setFormData({...formData, cbdContent: e.target.value})}
+                                                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 sm:text-sm"
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700">คำอธิบาย</label>
+                                        <textarea
+                                            value={formData.description}
+                                            onChange={(e) => setFormData({...formData, description: e.target.value})}
+                                            rows="3"
+                                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 sm:text-sm"
+                                        />
+                                    </div>
+
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700">ราคา (บาท)</label>
+                                            <input
+                                                type="number"
+                                                required
+                                                value={formData.price}
+                                                onChange={(e) => setFormData({...formData, price: e.target.value})}
+                                                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 sm:text-sm"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700">สต็อก (กรัม)</label>
+                                            <input
+                                                type="number"
+                                                required
+                                                value={formData.stock}
+                                                onChange={(e) => setFormData({...formData, stock: e.target.value})}
+                                                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 sm:text-sm"
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="mt-6 flex justify-end space-x-3">
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            setIsModalOpen(false);
+                                            setEditingStrain(null);
+                                        }}
+                                        className="inline-flex justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
+                                    >
+                                        ยกเลิก
+                                    </button>
+                                    <button
+                                        type="submit"
+                                        className="inline-flex justify-center rounded-md border border-transparent bg-green-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
+                                    >
+                                        {editingStrain ? 'บันทึกการแก้ไข' : 'เพิ่มสายพันธุ์'}
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            )}
+        </Container>
+    )
+}
+
+export default StrainsPage 

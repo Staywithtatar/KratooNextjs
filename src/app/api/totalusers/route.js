@@ -4,7 +4,7 @@ import User from "../../../../models/user";
 
 export async function GET() {
     await connectMongoDB();
-    const totalUsers = await User.find();
+    const totalUsers = await User.countDocuments();
     return NextResponse.json({ totalUsers });
 }
 

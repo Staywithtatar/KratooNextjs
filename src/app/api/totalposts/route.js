@@ -1,15 +1,11 @@
 import { NextResponse } from "next/server";
 import { connectMongoDB } from "../../../../lib/mongodb";
-import Post from "../../../../models/post";
+import Post from "../../../../models/strain";
 
 export async function GET() {
-    try {
-        await connectMongoDB();
-        const totalPosts = await Post.find({});
-        return NextResponse.json({ totalPosts });
-    } catch (error) {
-        return NextResponse.json({ error: error.message }, { status: 500 });
-    }
+    await connectMongoDB();
+    const totalPosts = await Post.countDocuments();
+    return NextResponse.json({ totalPosts });
 }
 
 export async function DELETE(req) {

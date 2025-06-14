@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
 import Link from 'next/link'
@@ -41,22 +41,21 @@ function WelcomePage() {
         setPostData(posts => posts.filter(post => post._id !== deletedId));
     };
     
-    const getPosts = async () => {
+    const getPosts = useCallback(async () => {
         try {
             const res = await fetch(`${process.env.NEXT_PUBLIC_URL}/api/posts?email=${userEmail}`);
+            if (!res.ok) throw new Error('Failed to fetch posts');
             const data = await res.json();
             console.log("Posts data:", data); // เพิ่ม log
             setPostData(data.posts);
-        } catch(error) {
-            console.log("Error:", error);
+        } catch (error) {
+            console.error('Error fetching posts:', error);
         }
-    }
-    
+    }, [userEmail]);
+
     useEffect(() => {
-        if(userEmail) {
-            getPosts();
-        }
-    }, [userEmail, getPosts]);
+        getPosts();
+    }, [getPosts]);
 
     useEffect(() => {
         // Fetch comments for each post
