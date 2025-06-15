@@ -1,10 +1,9 @@
 import { NextResponse } from "next/server";
-import { connectMongoDB } from "@/lib/mongodb";
-import Sale from "@/models/sale";
-import Strain from "@/models/strain";
-import StockLog from "@/models/stockLog";
+import { connectMongoDB } from "../../../../lib/mongodb";
+import Sale from "../../../../models/sale";
+import Strain from "../../../../models/strain";
+import StockLog from "../../../../models/stockLog";
 import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
 import mongoose from "mongoose";
 
 // GET /api/sales - Get all sales with filtering and pagination

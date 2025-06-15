@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
-import { connectMongoDB } from "@/lib/mongodb";
-import Strain from "@/models/strain";
+import { connectMongoDB } from "../../../../lib/mongodb";
+import Strain from "../../../../models/strain";
 import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+
 
 // GET /api/strains - Get all strains with optional filtering
 export async function GET(request) {

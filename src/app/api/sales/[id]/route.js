@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { connectMongoDB } from "../../../../lib/mongodb";
-import Sale from "../../../../models/sale";
+import { connectMongoDB } from "../../../../../lib/mongodb";
+import Sale from "../../../../../models/sale";
 
 export async function GET(request, { params }) {
     const { id } = params;

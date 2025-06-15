@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
-import { connectMongoDB } from "@/lib/mongodb";
-import StockLog from "@/models/stockLog";
-import Strain from "@/models/strain";
+import { connectMongoDB } from "../../../../lib/mongodb";
+import StockLog from "../../../../models/stockLog";
+import Strain from "../../../../models/strain";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../auth/[...nextauth]/route";
 import mongoose from "mongoose";
