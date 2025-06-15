@@ -11,12 +11,6 @@ export default function AdminNav({ session, onToggleSidebar }) {
         setIsMobileMenuOpen(!isMobileMenuOpen);
     };
 
-    const handleSidebarToggle = () => {
-        if (onToggleSidebar) {
-            onToggleSidebar();
-        }
-    };
-
     return (
         <nav className="bg-gradient-to-r from-green-800 via-green-700 to-emerald-800 shadow-2xl border-b-4 border-green-600 relative z-50">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -25,9 +19,8 @@ export default function AdminNav({ session, onToggleSidebar }) {
                     <div className="flex items-center">
                         {/* Sidebar Toggle Button */}
                         <button
-                            onClick={handleSidebarToggle}
+                            onClick={onToggleSidebar}
                             className="mr-3 p-2 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-lg shadow-lg hover:shadow-green-500/25 transition-all duration-300 hover:scale-105"
-                            aria-label="Toggle Sidebar"
                         >
                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
