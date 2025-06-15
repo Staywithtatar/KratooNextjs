@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { connectMongoDB } from "../../../../lib/mongodb";
 import Strain from "../../../../models/strain";
 import { getServerSession } from "next-auth";
+import { authOptions } from "../auth/[...nextauth]/route";
 
 
 // GET /api/strains - Get all strains with optional filtering

@@ -4,6 +4,7 @@ import Sale from "../../../../models/sale";
 import Strain from "../../../../models/strain";
 import StockLog from "../../../../models/stockLog";
 import { getServerSession } from "next-auth";
+import { authOptions } from "../auth/[...nextauth]/route";
 import mongoose from "mongoose";
 
 // GET /api/sales - Get all sales with filtering and pagination
