@@ -3,78 +3,111 @@ import { connectMongoDB } from "@/lib/mongodb";
 import StockLog from "@/models/stockLog";
 import Strain from "@/models/strain";
 import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { authOptions } from "../auth/[...nextauth]/route";
 import mongoose from "mongoose";
 
 // GET /api/stockLogs - Get all stock logs with filtering and pagination
-export async function GET() {
+export async function GET(request) {
     try {
         const session = await getServerSession(authOptions);
-
-        if (!session || session.user.role !== "admin") {
-            return new Response(JSON.stringify({ error: "Unauthorized" }), {
-                status: 401,
-                headers: { "Content-Type": "application/json" },
-            });
+        if (!session) {
+            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
         await connectMongoDB();
-        const stockLogs = await StockLog.find().sort({ createdAt: -1 });
+        const { searchParams } = new URL(request.url);
+        
+        // Build query based on parameters
+        const query = {};
+        
+        // Filter by date range
+        if (searchParams.get('startDate') && searchParams.get('endDate')) {
+            query.createdAt = {
+                $gte: new Date(searchParams.get('startDate')),
+                $lte: new Date(searchParams.get('endDate'))
+            };
+        }
+        
+        // Filter by type
+        if (searchParams.get('type')) {
+            query.type = searchParams.get('type');
+        }
+        
+        // Filter by strain
+        if (searchParams.get('strainId')) {
+            query.strain = searchParams.get('strainId');
+        }
 
-        return new Response(JSON.stringify(stockLogs), {
-            status: 200,
-            headers: { "Content-Type": "application/json" },
+        // Filter by reference type
+        if (searchParams.get('referenceType')) {
+            query.referenceType = searchParams.get('referenceType');
+        }
+
+        // Pagination
+        const page = parseInt(searchParams.get('page')) || 1;
+        const limit = parseInt(searchParams.get('limit')) || 10;
+        const skip = (page - 1) * limit;
+
+        // Get total count for pagination
+        const total = await StockLog.countDocuments(query);
+
+        // Get stock logs with pagination and populate related data
+        const stockLogs = await StockLog.find(query)
+            .populate('strain', 'name type')
+            .populate('performedBy', 'name email')
+            .sort({ createdAt: -1 })
+            .skip(skip)
+            .limit(limit);
+
+        // Calculate summary statistics
+        const summary = await StockLog.aggregate([
+            { $match: query },
+            {
+                $group: {
+                    _id: "$type",
+                    totalQuantity: { $sum: "$quantity" },
+                    count: { $sum: 1 }
+                }
+            }
+        ]);
+
+        return NextResponse.json({
+            stockLogs,
+            summary: summary.reduce((acc, curr) => ({
+                ...acc,
+                [curr._id]: {
+                    totalQuantity: curr.totalQuantity,
+                    count: curr.count
+                }
+            }), {}),
+            pagination: {
+                total,
+                page,
+                limit,
+                pages: Math.ceil(total / limit)
+            }
         });
     } catch (error) {
-        console.error("Error fetching stock logs:", error);
-        return new Response(JSON.stringify({ error: "Internal Server Error" }), {
-            status: 500,
-            headers: { "Content-Type": "application/json" },
-        });
+        console.error("Error in GET /api/stockLogs:", error);
+        return NextResponse.json(
+            { error: "Internal Server Error" },
+            { status: 500 }
+        );
     }
 }
 
 // POST /api/stockLogs - Create a new stock log entry
 export async function POST(request) {
     try {
-        const session = await getServerSession(authOptions);
-
-        if (!session || session.user.role !== "admin") {
-            return new Response(JSON.stringify({ error: "Unauthorized" }), {
-                status: 401,
-                headers: { "Content-Type": "application/json" },
-            });
-        }
-
-        const body = await request.json();
-        const { strainId, quantity, type, notes } = body;
-
-        if (!strainId || !quantity || !type) {
-            return new Response(JSON.stringify({ error: "Missing required fields" }), {
-                status: 400,
-                headers: { "Content-Type": "application/json" },
-            });
-        }
-
+        const { strain, type, quantity, previousStock, newStock, reason, reference, referenceType, performedBy, notes } = await request.json();
         await connectMongoDB();
-        const stockLog = await StockLog.create({
-            strainId,
-            quantity,
-            type,
-            notes,
-            createdBy: session.user.id
-        });
-
-        return new Response(JSON.stringify(stockLog), {
-            status: 201,
-            headers: { "Content-Type": "application/json" },
-        });
+        await StockLog.create({ strain, type, quantity, previousStock, newStock, reason, reference, referenceType, performedBy, notes });
+        return NextResponse.json({ message: "Stock log created" }, { status: 201 });
     } catch (error) {
-        console.error("Error creating stock log:", error);
-        return new Response(JSON.stringify({ error: "Internal Server Error" }), {
-            status: 500,
-            headers: { "Content-Type": "application/json" },
-        });
+        return NextResponse.json(
+            { message: "An error occurred while creating the stock log." },
+            { status: 500 }
+        );
     }
 }
 

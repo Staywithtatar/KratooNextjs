@@ -4,11 +4,17 @@ import { signOut } from "next-auth/react";
 import Link from "next/link";
 import { useState } from "react";
 
-export default function AdminNav({ session, isOpen, toggleSidebar }) {
+export default function AdminNav({ session, onToggleSidebar }) {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
     const toggleMobileMenu = () => {
         setIsMobileMenuOpen(!isMobileMenuOpen);
+    };
+
+    const handleSidebarToggle = () => {
+        if (onToggleSidebar) {
+            onToggleSidebar();
+        }
     };
 
     return (
@@ -19,13 +25,9 @@ export default function AdminNav({ session, isOpen, toggleSidebar }) {
                     <div className="flex items-center">
                         {/* Sidebar Toggle Button */}
                         <button
-                            onClick={toggleSidebar}
-                            className={`mr-3 p-2 rounded-lg shadow-lg transition-all duration-300 hover:scale-105 ${
-                                isOpen 
-                                    ? 'bg-gradient-to-r from-emerald-600 to-green-600 text-white hover:shadow-green-500/25' 
-                                    : 'bg-gradient-to-r from-green-600 to-emerald-600 text-white hover:shadow-green-500/25'
-                            }`}
-                            aria-label={isOpen ? "Close sidebar" : "Open sidebar"}
+                            onClick={handleSidebarToggle}
+                            className="mr-3 p-2 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-lg shadow-lg hover:shadow-green-500/25 transition-all duration-300 hover:scale-105"
+                            aria-label="Toggle Sidebar"
                         >
                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
@@ -129,75 +131,7 @@ export default function AdminNav({ session, isOpen, toggleSidebar }) {
                         </div>
                     </div>
 
-                    {/* Navigation Links */}
-                    <div className="space-y-2">
-                        <Link 
-                            href="/admin" 
-                            className="flex items-center px-4 py-3 text-white hover:bg-green-600/50 rounded-lg transition-colors duration-200"
-                            onClick={() => setIsMobileMenuOpen(false)}
-                        >
-                            <svg className="w-5 h-5 mr-3" fill="currentColor" viewBox="0 0 24 24">
-                                <path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/>
-                            </svg>
-                            Dashboard
-                        </Link>
-                        
-                        <Link 
-                            href="/admin/strains" 
-                            className="flex items-center px-4 py-3 text-white hover:bg-green-600/50 rounded-lg transition-colors duration-200"
-                            onClick={() => setIsMobileMenuOpen(false)}
-                        >
-                            <svg className="w-5 h-5 mr-3" fill="currentColor" viewBox="0 0 24 24">
-                                <path d="M12 2C8.13 2 5 5.13 5 9c0 2.38 1.19 4.47 3 5.74V17c0 .55.45 1 1 1s1-.45 1-1v-1.5c.33.08.66.15 1 .19V18c0 .55.45 1 1 1s1-.45 1-1v-2.31c.34-.04.67-.11 1-.19V17c0 .55.45 1 1 1s1-.45 1-1v-2.26c1.81-1.27 3-3.36 3-5.74 0-3.87-3.13-7-7-7z"/>
-                            </svg>
-                            Strains
-                        </Link>
-                        
-                        <Link 
-                            href="/admin/sales" 
-                            className="flex items-center px-4 py-3 text-white hover:bg-green-600/50 rounded-lg transition-colors duration-200"
-                            onClick={() => setIsMobileMenuOpen(false)}
-                        >
-                            <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                            Sales
-                        </Link>
-                        
-                        <Link 
-                            href="/admin/stock-logs" 
-                            className="flex items-center px-4 py-3 text-white hover:bg-green-600/50 rounded-lg transition-colors duration-200"
-                            onClick={() => setIsMobileMenuOpen(false)}
-                        >
-                            <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-                            </svg>
-                            Stock Logs
-                        </Link>
-
-                        <Link 
-                            href="/admin/reports" 
-                            className="flex items-center px-4 py-3 text-white hover:bg-green-600/50 rounded-lg transition-colors duration-200"
-                            onClick={() => setIsMobileMenuOpen(false)}
-                        >
-                            <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                            </svg>
-                            Reports
-                        </Link>
-
-                        <Link 
-                            href="/admin/settings" 
-                            className="flex items-center px-4 py-3 text-white hover:bg-green-600/50 rounded-lg transition-colors duration-200"
-                            onClick={() => setIsMobileMenuOpen(false)}
-                        >
-                            <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                            </svg>
-                            Settings
-                        </Link>
-                    </div>
+                    
 
                     {/* Sign Out Button */}
                     <div className="pt-4 border-t border-green-600">

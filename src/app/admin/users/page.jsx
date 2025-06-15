@@ -15,23 +15,23 @@ function AdminUserManagePage() {
     const [allUsersData, setAllUsersData] = useState([]);
 
     useEffect(() => {
-        if (session?.user?.role === 'admin') {
-            fetchUsers();
-        }
-    }, [session]);
+        if (!session || session?.user?.role !== "admin") return;
 
-    const fetchUsers = async () => {
-        try {
-            const res = await fetch(`${process.env.NEXT_PUBLIC_URL}/api/totalusers`);
-            if (!res.ok) {
-                throw new Error("Failed to fetch users");
+        const getAllUsersData = async () => {
+            try {
+                const res = await fetch(`${process.env.NEXT_PUBLIC_URL}/api/totalusers`);
+                if (!res.ok) {
+                    throw new Error("Failed to fetch users");
+                }
+                const data = await res.json();
+                setAllUsersData(data.totalUsers);
+            } catch(error) {
+                console.log("Error loading users:", error);
             }
-            const data = await res.json();
-            setAllUsersData(data.totalUsers);
-        } catch(error) {
-            console.log("Error loading users:", error);
-        }
-    };
+        };
+
+        getAllUsersData();
+    }, []);
 
     const handleDelete = (deletedId) => {
         setAllUsersData(prevUsers => prevUsers.filter(user => user._id !== deletedId));

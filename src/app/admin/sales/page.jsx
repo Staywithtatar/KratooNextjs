@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useEffect, useCallback } from 'react'
+import React, { useState, useEffect } from 'react'
 import Container from '../../components/Container'
 
 function SalesPage() {
@@ -22,9 +22,12 @@ function SalesPage() {
         end: ""
     });
 
-    const fetchSales = useCallback(async () => {
+    useEffect(() => {
+        fetchSales();
+    }, []);
+
+    const fetchSales = async () => {
         try {
-            setIsLoading(true);
             let url = `${process.env.NEXT_PUBLIC_URL}/api/sales`;
             const params = new URLSearchParams();
             
@@ -56,11 +59,7 @@ function SalesPage() {
         } finally {
             setIsLoading(false);
         }
-    }, [dateRange.start, dateRange.end, pagination.page, pagination.limit]);
-
-    useEffect(() => {
-        fetchSales();
-    }, [fetchSales]);
+    };
 
     const handleDateFilter = (e) => {
         e.preventDefault();

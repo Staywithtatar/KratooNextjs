@@ -37,15 +37,8 @@ export default function AdminLayout({ children }) {
 
     return (
         <div className="min-h-screen">
-            <AdminNav 
-                session={session} 
-                isOpen={isSidebarOpen} 
-                toggleSidebar={toggleSidebar} 
-            />
-            <SideNav 
-                isOpen={isSidebarOpen} 
-                toggleSidebar={toggleSidebar} 
-            />
+            <AdminNav session={session} onToggleSidebar={toggleSidebar} />
+            <SideNav isOpen={isSidebarOpen} toggleSidebar={toggleSidebar} />
             <main className={`p-6 transition-all duration-300 ${isSidebarOpen ? 'md:ml-72' : ''}`}>
                 {children}
             </main>
