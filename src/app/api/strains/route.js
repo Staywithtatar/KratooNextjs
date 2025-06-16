@@ -31,12 +31,13 @@ export async function GET(request) {
         
         // Transform the data to match the expected format and filter out inactive strains
         strains = strains
-            .map(row => ({
+            .map((row, index) => ({
+                _id: index + 2, // Assign a unique ID based on Google Sheet row number
                 name: row[0] || '',
                 type: row[1] || '',
-                thcPercent: parseFloat(row[2]) || 0,
-                stock: parseInt(row[3]) || 0,
-                price: parseFloat(row[4]) || 0,
+                thcPercent: parseFloat(row[2] || 0) || 0,
+                stock: parseInt(row[3] || 0) || 0,
+                price: parseFloat(row[4] || 0) || 0,
                 notes: row[5] || '',
             }))
             .filter(strain => strain.name && strain.name !== '' && strain.notes !== 'Inactive'); // Filter out empty or inactive rows
@@ -162,10 +163,10 @@ export async function PUT(request, { params }) {
         });
 
         const existingNames = (response.data.values || []).map(row => row[0]).filter(name => name && name !== '');
-        const rowIndex = parseInt(id) - 2; // Convert to 0-based array index
+        const rowIndex = parseInt(id) - 2; // Convert to 0-based array index (assuming 'id' is 1-indexed row number)
         
         // Check if new name conflicts with other strains (excluding current row)
-        if (body.name && body.name !== existingNames[rowIndex]) {
+        if (body.name && body.name !== (existingNames[rowIndex] || '_')) { // Use || '_' to avoid 'undefined' string comparison
             if (existingNames.includes(body.name)) {
                 return NextResponse.json(
                     { message: "ชื่อสายพันธุ์นี้มีอยู่ในระบบแล้ว" },
@@ -174,8 +175,16 @@ export async function PUT(request, { params }) {
             }
         }
 
-        // Check if the strain exists
-        if (rowIndex < 0 || rowIndex >= existingNames.length || !existingNames[rowIndex]) {
+        // Check if the strain exists (using the parsed row index)
+        // Note: We are using the id from params directly for the range, as it's the 1-indexed row number
+        // The rowIndex is for array access for existingNames.
+        const checkRowResponse = await sheets.spreadsheets.values.get({
+            spreadsheetId: process.env.SHEET_ID,
+            range: `Strains!A${parseInt(id)}:A${parseInt(id)}`,
+        });
+
+        const existingRowData = checkRowResponse.data.values;
+        if (!existingRowData || existingRowData.length === 0 || !existingRowData[0] || existingRowData[0][0] === '') {
             return NextResponse.json(
                 { message: "ไม่พบสายพันธุ์นี้" },
                 { status: 404 }
@@ -186,9 +195,9 @@ export async function PUT(request, { params }) {
         const rowData = [
             body.name,
             body.type,
-            String(body.thcPercent),
-            String(body.stock),
-            String(body.price), // Fixed: was using pricePerGram instead of price
+            String(body.thcPercent || ''),
+            String(body.stock || ''),
+            String(body.price || ''),
             body.notes || '',
         ];
 
@@ -227,17 +236,14 @@ export async function DELETE(request, { params }) {
 
         const { id } = params;
         
-        // Get existing strains to check if the strain exists
+        // Check if strain exists using the row index
         const response = await sheets.spreadsheets.values.get({
             spreadsheetId: process.env.SHEET_ID,
-            range: 'Strains!A2:A', // Only get the name column
+            range: `Strains!A${parseInt(id)}:A${parseInt(id)}`,
         });
 
-        const existingNames = (response.data.values || []).map(row => row[0]).filter(name => name && name !== '');
-        const rowIndex = parseInt(id) - 2; // Convert to 0-based array index
-        
-        // Check if strain exists
-        if (rowIndex < 0 || rowIndex >= existingNames.length || !existingNames[rowIndex]) {
+        const existingRow = response.data.values;
+        if (!existingRow || existingRow.length === 0 || !existingRow[0] || existingRow[0][0] === '') {
             return NextResponse.json(
                 { message: "ไม่พบสายพันธุ์นี้" },
                 { status: 404 }

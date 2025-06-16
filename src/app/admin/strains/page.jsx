@@ -30,7 +30,8 @@ function StrainsPage() {
             const res = await fetch(`${process.env.NEXT_PUBLIC_URL}/api/strains`);
             const data = await res.json();
             if (res.ok) {
-                setStrains(data);
+                // Ensure data is an array and filter out any null/undefined entries
+                setStrains(Array.isArray(data) ? data.filter(s => s) : []);
             } else {
                 setError("ไม่สามารถโหลดข้อมูลสายพันธุ์ได้");
             }
@@ -44,9 +45,9 @@ function StrainsPage() {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            // Use row index instead of _id for Google Sheets backend
+            // Use _id for Google Sheets backend (row index)
             const url = editingStrain 
-                ? `${process.env.NEXT_PUBLIC_URL}/api/strains/${editingStrain.index}`
+                ? `${process.env.NEXT_PUBLIC_URL}/api/strains/${editingStrain._id}`
                 : `${process.env.NEXT_PUBLIC_URL}/api/strains`;
             
             const method = editingStrain ? "PUT" : "POST";
@@ -88,11 +89,11 @@ function StrainsPage() {
         }
     };
 
-    const handleDelete = async (index) => {
+    const handleDelete = async (_id) => {
         if (!confirm("คุณแน่ใจหรือไม่ที่จะลบสายพันธุ์นี้?")) return;
 
         try {
-            const res = await fetch(`${process.env.NEXT_PUBLIC_URL}/api/strains/${index}`, {
+            const res = await fetch(`${process.env.NEXT_PUBLIC_URL}/api/strains/${_id}`, {
                 method: "DELETE"
             });
 
@@ -106,14 +107,14 @@ function StrainsPage() {
         }
     };
 
-    const handleEdit = (strain, index) => {
-        setEditingStrain({...strain, index});
+    const handleEdit = (strain) => {
+        setEditingStrain({...strain}); 
         setFormData({
             name: strain.name,
             type: strain.type,
-            thcPercent: strain.thcPercent.toString(),
-            stock: strain.stock.toString(),
-            price: strain.price.toString(),
+            thcPercent: (strain.thcPercent ?? '').toString(),
+            stock: (strain.stock ?? '').toString(),
+            price: (strain.price ?? '').toString(),
             notes: strain.notes || ""
         });
         setIsModalOpen(true);
@@ -190,7 +191,7 @@ function StrainsPage() {
                                                         ประเภท
                                                     </th>
                                                     <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
-                                                        THC%
+                                                         THC%
                                                     </th>
                                                     <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
                                                         สต็อก
@@ -198,14 +199,20 @@ function StrainsPage() {
                                                     <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
                                                         ราคา
                                                     </th>
+                                                    <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+                                                        หมายเหตุ
+                                                    </th>
                                                     <th scope="col" className="relative py-3.5 pl-3 pr-4 sm:pr-6">
                                                         <span className="sr-only">จัดการ</span>
                                                     </th>
                                                 </tr>
                                             </thead>
                                             <tbody className="divide-y divide-gray-200 bg-white">
-                                                {strains.map((strain, index) => (
-                                                    <tr key={`${strain.name}-${index}`}>
+                                                {strains.map((strain) => {
+                                                    console.log("Strain object:", strain);
+                                                    console.log("Strain price:", strain?.price);
+                                                    return (
+                                                    strain && <tr key={strain._id}> 
                                                         <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6">
                                                             {strain.name}
                                                         </td>
@@ -214,30 +221,33 @@ function StrainsPage() {
                                                              strain.type === 'Sativa' ? 'ซาติวา' : 'ไฮบริด'}
                                                         </td>
                                                         <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                                                            {typeof strain.thcPercent === 'number' ? `${strain.thcPercent}%` : 'N/A'}
+                                                            {`${String(strain.thcPercent || '')}%`}
                                                         </td>
                                                         <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                                                            {typeof strain.stock === 'number' ? `${strain.stock} กรัม` : 'N/A'}
+                                                            {`${String(strain.stock || '')} กรัม`}
                                                         </td>
                                                         <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                                                            {typeof strain.price === 'number' ? `${strain.price.toLocaleString()} บาท` : 'N/A'}
+                                                            {`${String(strain.price || '')} บาท`}
+                                                        </td>
+                                                        <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                                                            {strain.notes || 'N/A'}
                                                         </td>
                                                         <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
                                                             <button
-                                                                onClick={() => handleEdit(strain, index + 2)} // +2 because Google Sheets starts at row 2
+                                                                onClick={() => handleEdit(strain)} 
                                                                 className="text-green-600 hover:text-green-900 mr-4"
                                                             >
                                                                 แก้ไข
                                                             </button>
                                                             <button
-                                                                onClick={() => handleDelete(index + 2)} // +2 because Google Sheets starts at row 2
+                                                                onClick={() => handleDelete(strain._id)} 
                                                                 className="text-red-600 hover:text-red-900"
                                                             >
                                                                 ลบ
                                                             </button>
                                                         </td>
                                                     </tr>
-                                                ))}
+                                                );})}
                                                 {strains.length === 0 && !isLoading && (
                                                     <tr>
                                                         <td colSpan={6} className="px-6 py-4 text-center text-sm text-gray-500">
