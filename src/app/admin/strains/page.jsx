@@ -12,13 +12,11 @@ function StrainsPage() {
     const [editingStrain, setEditingStrain] = useState(null);
     const [formData, setFormData] = useState({
         name: "",
-        type: "Indica", // Changed default to match enum values
-        thcContent: "", // Changed from thc
-        cbdContent: "", // Changed from cbd
-        description: "",
-        price: "",
+        type: "Indica",
+        thcPercent: "",
         stock: "",
-        image: "/images/default-strain.jpg" // Added default image
+        price: "",
+        notes: ""
     });
 
     const router = useRouter();
@@ -46,8 +44,9 @@ function StrainsPage() {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
+            // Use row index instead of _id for Google Sheets backend
             const url = editingStrain 
-                ? `${process.env.NEXT_PUBLIC_URL}/api/strains/${editingStrain._id}`
+                ? `${process.env.NEXT_PUBLIC_URL}/api/strains/${editingStrain.index}`
                 : `${process.env.NEXT_PUBLIC_URL}/api/strains`;
             
             const method = editingStrain ? "PUT" : "POST";
@@ -55,10 +54,9 @@ function StrainsPage() {
             // Convert numeric fields to numbers
             const submitData = {
                 ...formData,
-                thcContent: parseFloat(formData.thcContent),
-                cbdContent: parseFloat(formData.cbdContent),
-                price: parseFloat(formData.price),
-                stock: parseFloat(formData.stock)
+                thcPercent: parseFloat(formData.thcPercent),
+                stock: parseFloat(formData.stock),
+                price: parseFloat(formData.price)
             };
             
             const res = await fetch(url, {
@@ -75,12 +73,10 @@ function StrainsPage() {
                 setFormData({
                     name: "",
                     type: "Indica",
-                    thcContent: "",
-                    cbdContent: "",
-                    description: "",
-                    price: "",
+                    thcPercent: "",
                     stock: "",
-                    image: "/images/default-strain.jpg"
+                    price: "",
+                    notes: ""
                 });
                 fetchStrains();
             } else {
@@ -92,11 +88,11 @@ function StrainsPage() {
         }
     };
 
-    const handleDelete = async (id) => {
+    const handleDelete = async (index) => {
         if (!confirm("คุณแน่ใจหรือไม่ที่จะลบสายพันธุ์นี้?")) return;
 
         try {
-            const res = await fetch(`${process.env.NEXT_PUBLIC_URL}/api/strains/${id}`, {
+            const res = await fetch(`${process.env.NEXT_PUBLIC_URL}/api/strains/${index}`, {
                 method: "DELETE"
             });
 
@@ -110,19 +106,36 @@ function StrainsPage() {
         }
     };
 
-    const handleEdit = (strain) => {
-        setEditingStrain(strain);
+    const handleEdit = (strain, index) => {
+        setEditingStrain({...strain, index});
         setFormData({
             name: strain.name,
             type: strain.type,
-            thcContent: strain.thcContent,
-            cbdContent: strain.cbdContent,
-            description: strain.description,
-            price: strain.price,
-            stock: strain.stock,
-            image: strain.image || "/images/default-strain.jpg"
+            thcPercent: strain.thcPercent.toString(),
+            stock: strain.stock.toString(),
+            price: strain.price.toString(),
+            notes: strain.notes || ""
         });
         setIsModalOpen(true);
+    };
+
+    const resetForm = () => {
+        setEditingStrain(null);
+        setFormData({
+            name: "",
+            type: "Indica",
+            thcPercent: "",
+            stock: "",
+            price: "",
+            notes: ""
+        });
+        setIsModalOpen(true);
+    };
+
+    const closeModal = () => {
+        setIsModalOpen(false);
+        setEditingStrain(null);
+        setError(""); // Clear any form errors
     };
 
     return (
@@ -138,20 +151,7 @@ function StrainsPage() {
                         </div>
                         <div className="mt-4 sm:mt-0 sm:ml-16 sm:flex-none">
                             <button
-                                onClick={() => {
-                                    setEditingStrain(null);
-                                    setFormData({
-                                        name: "",
-                                        type: "Indica",
-                                        thcContent: "",
-                                        cbdContent: "",
-                                        description: "",
-                                        price: "",
-                                        stock: "",
-                                        image: "/images/default-strain.jpg"
-                                    });
-                                    setIsModalOpen(true);
-                                }}
+                                onClick={resetForm}
                                 className="inline-flex items-center justify-center rounded-md border border-transparent bg-green-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 sm:w-auto"
                             >
                                 เพิ่มสายพันธุ์ใหม่
@@ -162,6 +162,12 @@ function StrainsPage() {
                     {error && (
                         <div className="mt-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded relative">
                             {error}
+                            <button
+                                onClick={() => setError("")}
+                                className="absolute top-0 right-0 mt-2 mr-2 text-red-500 hover:text-red-700"
+                            >
+                                ×
+                            </button>
                         </div>
                     )}
 
@@ -184,16 +190,13 @@ function StrainsPage() {
                                                         ประเภท
                                                     </th>
                                                     <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
-                                                        THC
-                                                    </th>
-                                                    <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
-                                                        CBD
-                                                    </th>
-                                                    <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
-                                                        ราคา
+                                                        THC%
                                                     </th>
                                                     <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
                                                         สต็อก
+                                                    </th>
+                                                    <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+                                                        ราคา
                                                     </th>
                                                     <th scope="col" className="relative py-3.5 pl-3 pr-4 sm:pr-6">
                                                         <span className="sr-only">จัดการ</span>
@@ -201,8 +204,8 @@ function StrainsPage() {
                                                 </tr>
                                             </thead>
                                             <tbody className="divide-y divide-gray-200 bg-white">
-                                                {strains.map((strain) => (
-                                                    <tr key={strain._id}>
+                                                {strains.map((strain, index) => (
+                                                    <tr key={`${strain.name}-${index}`}>
                                                         <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6">
                                                             {strain.name}
                                                         </td>
@@ -211,26 +214,23 @@ function StrainsPage() {
                                                              strain.type === 'Sativa' ? 'ซาติวา' : 'ไฮบริด'}
                                                         </td>
                                                         <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                                                            {strain.thcContent}%
+                                                            {typeof strain.thcPercent === 'number' ? `${strain.thcPercent}%` : 'N/A'}
                                                         </td>
                                                         <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                                                            {strain.cbdContent}%
+                                                            {typeof strain.stock === 'number' ? `${strain.stock} กรัม` : 'N/A'}
                                                         </td>
                                                         <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                                                            {strain.price.toLocaleString()} บาท
-                                                        </td>
-                                                        <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                                                            {strain.stock} กรัม
+                                                            {typeof strain.price === 'number' ? `${strain.price.toLocaleString()} บาท` : 'N/A'}
                                                         </td>
                                                         <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
                                                             <button
-                                                                onClick={() => handleEdit(strain)}
+                                                                onClick={() => handleEdit(strain, index + 2)} // +2 because Google Sheets starts at row 2
                                                                 className="text-green-600 hover:text-green-900 mr-4"
                                                             >
                                                                 แก้ไข
                                                             </button>
                                                             <button
-                                                                onClick={() => handleDelete(strain._id)}
+                                                                onClick={() => handleDelete(index + 2)} // +2 because Google Sheets starts at row 2
                                                                 className="text-red-600 hover:text-red-900"
                                                             >
                                                                 ลบ
@@ -238,6 +238,13 @@ function StrainsPage() {
                                                         </td>
                                                     </tr>
                                                 ))}
+                                                {strains.length === 0 && !isLoading && (
+                                                    <tr>
+                                                        <td colSpan={6} className="px-6 py-4 text-center text-sm text-gray-500">
+                                                            ไม่มีข้อมูลสายพันธุ์
+                                                        </td>
+                                                    </tr>
+                                                )}
                                             </tbody>
                                         </table>
                                     )}
@@ -253,7 +260,7 @@ function StrainsPage() {
                 <div className="fixed z-10 inset-0 overflow-y-auto">
                     <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
                         <div className="fixed inset-0 transition-opacity" aria-hidden="true">
-                            <div className="absolute inset-0 bg-gray-500 opacity-75"></div>
+                            <div className="absolute inset-0 bg-gray-500 opacity-75" onClick={closeModal}></div>
                         </div>
 
                         <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
@@ -272,7 +279,7 @@ function StrainsPage() {
                                             required
                                             value={formData.name}
                                             onChange={(e) => setFormData({...formData, name: e.target.value})}
-                                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 sm:text-sm"
+                                            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-green-500 focus:outline-none focus:ring-green-500 sm:text-sm"
                                         />
                                     </div>
 
@@ -281,7 +288,7 @@ function StrainsPage() {
                                         <select
                                             value={formData.type}
                                             onChange={(e) => setFormData({...formData, type: e.target.value})}
-                                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 sm:text-sm"
+                                            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-green-500 focus:outline-none focus:ring-green-500 sm:text-sm"
                                         >
                                             <option value="Indica">อินดิกา</option>
                                             <option value="Sativa">ซาติวา</option>
@@ -289,72 +296,59 @@ function StrainsPage() {
                                         </select>
                                     </div>
 
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700">THC (%)</label>
-                                            <input
-                                                type="number"
-                                                step="0.1"
-                                                required
-                                                value={formData.thcContent}
-                                                onChange={(e) => setFormData({...formData, thcContent: e.target.value})}
-                                                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 sm:text-sm"
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700">CBD (%)</label>
-                                            <input
-                                                type="number"
-                                                step="0.1"
-                                                required
-                                                value={formData.cbdContent}
-                                                onChange={(e) => setFormData({...formData, cbdContent: e.target.value})}
-                                                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 sm:text-sm"
-                                            />
-                                        </div>
-                                    </div>
-
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700">คำอธิบาย</label>
-                                        <textarea
-                                            value={formData.description}
-                                            onChange={(e) => setFormData({...formData, description: e.target.value})}
-                                            rows="3"
-                                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 sm:text-sm"
+                                        <label className="block text-sm font-medium text-gray-700">THC (%)</label>
+                                        <input
+                                            type="number"
+                                            step="0.1"
+                                            min="0"
+                                            max="100"
+                                            required
+                                            value={formData.thcPercent}
+                                            onChange={(e) => setFormData({...formData, thcPercent: e.target.value})}
+                                            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-green-500 focus:outline-none focus:ring-green-500 sm:text-sm"
                                         />
                                     </div>
 
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700">ราคา (บาท)</label>
-                                            <input
-                                                type="number"
-                                                required
-                                                value={formData.price}
-                                                onChange={(e) => setFormData({...formData, price: e.target.value})}
-                                                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 sm:text-sm"
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700">สต็อก (กรัม)</label>
-                                            <input
-                                                type="number"
-                                                required
-                                                value={formData.stock}
-                                                onChange={(e) => setFormData({...formData, stock: e.target.value})}
-                                                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 sm:text-sm"
-                                            />
-                                        </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700">สต็อก (กรัม)</label>
+                                        <input
+                                            type="number"
+                                            min="0"
+                                            required
+                                            value={formData.stock}
+                                            onChange={(e) => setFormData({...formData, stock: e.target.value})}
+                                            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-green-500 focus:outline-none focus:ring-green-500 sm:text-sm"
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700">ราคา (บาท)</label>
+                                        <input
+                                            type="number"
+                                            min="0"
+                                            required
+                                            value={formData.price}
+                                            onChange={(e) => setFormData({...formData, price: e.target.value})}
+                                            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-green-500 focus:outline-none focus:ring-green-500 sm:text-sm"
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700">หมายเหตุ</label>
+                                        <textarea
+                                            value={formData.notes}
+                                            onChange={(e) => setFormData({...formData, notes: e.target.value})}
+                                            rows="3"
+                                            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-green-500 focus:outline-none focus:ring-green-500 sm:text-sm"
+                                        />
                                     </div>
                                 </div>
 
                                 <div className="mt-6 flex justify-end space-x-3">
                                     <button
                                         type="button"
-                                        onClick={() => {
-                                            setIsModalOpen(false);
-                                            setEditingStrain(null);
-                                        }}
+                                        onClick={closeModal}
                                         className="inline-flex justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
                                     >
                                         ยกเลิก
@@ -375,4 +369,4 @@ function StrainsPage() {
     )
 }
 
-export default StrainsPage 
+export default StrainsPage
